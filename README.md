@@ -10,18 +10,22 @@ HTML
 ----
 
 __Points__
+```html
 <div itemscope itemtype="http://schema.org/Place" class="mapItem" data-mapid="map1" data-mapicondiv="icon1">
 	<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
 		<meta itemprop="latitude" content="123456" />
 		<meta itemprop="longitude" content="765432" />
 	</div>
 </div>
+```
 
 __Map__
+```html
 <div class="map" id="map1" data-zoomlevel="12"></div>
-
+```
 
 Jquery
 ------
+```javascript
 $( '.mapItem' ).leafletify()
-
+```
