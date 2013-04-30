@@ -39,7 +39,7 @@
 			if( !window.L ) {
 				throw 'Leaflet not found';
 			} else {
-				var localL = localL.noConflict();
+				var localL = L.noConflict();
 			}
 
 			// Our default settings
