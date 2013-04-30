@@ -32,6 +32,7 @@
 	};
 
 	$.fn.leafletify = function( options ) {
+		
 		try {
 
 			// First up, let's make sure we have included Leaflet library
@@ -150,118 +151,106 @@
 				}
 					
 				_debug( mapPoints );
-				
+
 			});
 
+			//== Init our maps & add points to them
 
+			// Loop over each map we expect & add points to them
+			for( var mapId in mapPoints ) {
+				try {
 
+					// Grab the container we want our map to reside in
+					var $mapContainer = $( '#' + mapId );
 
-			// //== Init our maps & add points to them
+					// Make sure we have a container to put the map into
+					if( $mapContainer.length ) {
 
-			// console.log( 'mapPoints', mapPoints );
+						// Create an instance of a leaflet map
+						var map = localL.map( mapId );
 
-			// // Loop over each map we expect & add points to them
-			// for( var mapId in mapPoints ) {
-			// 	try {
+						// Store this map's state. Used to prevent trying to re-init the points again later.
+						var mapInitialized = false;
 
-			// 		// Grab the container we want our map to reside in
-			// 		var $mapContainer = $( '#' + mapId );
+						// Some event binding on the mapContainer
+						$mapContainer.on( 'showMap', function() {
 
-			// 		// Make sure we have a container to put the map into
-			// 		if( $mapContainer.length ) {
+							// Hold a list of ALL the lats & lons to set the map centre later	
+							var latLngs = [];
 
-			// 			// Create an instance of a leaflet map
-			// 			var map = localL.map( mapId );
+							// If we've already init'd this map... just refresh it on show.
+							if( mapInitialized === true ) {
+								map.invalidateSize();
+							} else {
+								// Get details from the map container
+								var mapData = $mapContainer.data();
 
-			// 			// Store this map's state. Used to prevent trying to re-init the points again later.
-			// 			var mapInitialized = false;
+								// Need to clone the layer before we use it otherwise it causes problems
+								// with multiple maps.
+								var tiles = jQuery.extend( {}, OSMtileLayer );
+								tiles.addTo( map ); // Add this layer to our map
 
-			// 			// Some event binding on the mapContainer
-			// 			$mapContainer.on( 'showMap', function() {
+								// Loop over the points
+								for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
+									// Catch any problems & move on to next marker here
+									try {
+										// Hold this points lat & lon
+										var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
 
-			// 				// Hold a list of ALL the lats & lons to set the map centre later	
-			// 				var latLngs = [];
+										// Add this point to our latLng list ready to use when centering the map
+										latLngs.push( latLng );
 
-			// 				// If we've already init'd this map... just refresh it on show.
-			// 				if( mapInitialized === true ) {
-			// 					map.invalidateSize();
-			// 				} else {
-			// 					// Get details from the map container
-			// 					var mapData = $mapContainer.data();
+										// Hold some options, some maybe optional so build this object up based on conditions later.
+										var markerOptions = {};
 
-			// 					// Need to clone the layer before we use it otherwise it causes problems
-			// 					// with multiple maps.
-			// 					var tiles = jQuery.extend( {}, OSMtileLayer );
-			// 					tiles.addTo( map ); // Add this layer to our map
+										// If we had an icon div, use that
+										if( mapPoints[mapId][i].icondiv ) {
+											markerOptions.icon = mapPoints[mapId][i].icondiv;
+										}
 
-			// 					// Loop over the points
-			// 					for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
-			// 						// Catch any problems & move on to next marker here
-			// 						try {
-			// 							// Hold this points lat & lon
-			// 							var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
+										// Add a marker to the map
+										var marker = localL.marker( latLng, markerOptions ).addTo( map );
 
-			// 							// Add this point to our latLng list ready to use when centering the map
-			// 							latLngs.push( latLng );
+										// Bind a popover to our marker if we have one
+										// TODO: Find a way to make the offset dynamic based on the marker size (right now it
+										// positions itself directly over the marker image)
+										if( mapPoints[mapId][i].popover !== undefined ) {
+											marker.bindPopup( mapPoints[mapId][i].popover );
+										}
+									} catch( e ) {
+										_debug( 'Marker Error: ' + e );
+									}
+								}
 
-			// 							// Hold some options, some maybe optional so build this object up based on conditions later.
-			// 							var markerOptions = {};
+								// Set the boundries of the map view
+								map.fitBounds( latLngs );
 
-			// 							// If we had an icon div, use that
-			// 							if( mapPoints[mapId][i].icondiv ) {
-			// 								markerOptions.icon = mapPoints[mapId][i].icondiv;
-			// 							}
+								// If we want to be Zoomed in at a specific level, do that.
+								if( mapData.zoomlevel ) {
+									map.setZoom( mapData.zoomlevel );
+								}
 
-			// 							// Add a marker to the map
-			// 							var marker = localL.marker( latLng, markerOptions ).addTo( map );
+								// Now we've done all the hard work... let's not repeat ourselves
+								// hold the state here.
+								mapInitialized = true;
+							}
+						}).on( 'hideMap', function() {
+							// Nothing needed here yet... useful to know we can do something on hide later
+						});
 
-			// 							// Bind a popover to our marker if we have one
-			// 							// TODO: Find a way to make the offset dynamic based on the marker size (right now it
-			// 							// positions itself directly over the marker image)
-			// 							if( mapPoints[mapId][i].popover !== undefined ) {
-			// 								marker.bindPopup( mapPoints[mapId][i].popover );
-			// 							}
-			// 						} catch( e ) {
-			// 							_debug( 'Marker Error: ' + e );
-			// 						}
-			// 					}
-
-
-			// 					// Set the boundries of the map view
-			// 					map.fitBounds( latLngs );
-
-			// 					// If we want to be Zoomed in at a specific level, do that.
-			// 					if( mapData.zoomlevel ) {
-			// 						map.setZoom( mapData.zoomlevel );
-			// 					}
-
-			// 					// Now we've done all the hard work... let's not repeat ourselves
-			// 					// hold the state here.
-			// 					mapInitialized = true;
-			// 				}
-			// 			}).on( 'hideMap', function() {
-			// 				// Nothing needed here yet... useful to know we can do something on hide later
-			// 			});
-
-			// 			// Trigger the first event to show the map on load (only if it's visible)
-			// 			if( $mapContainer.is( ':visible' ) ) {
-			// 				$mapContainer.trigger( 'showMap' );
-			// 			}
-			// 		}
-			// 	} catch( e ) {
-			// 		_debug( 'Map Point Error: ' + e );
-			// 	}
-			// }
-
-
-
-
-
-
-
+						// Trigger the first event to show the map on load (only if it's visible)
+						if( $mapContainer.is( ':visible' ) ) {
+							$mapContainer.trigger( 'showMap' );
+						}
+					}
+				} catch( e ) {
+					_debug( 'Map Point Error: ' + e );
+				}
+			}
 		} catch( e ) {
 			_debug( 'Leafletify error: ' + e );
 		}
+		
 		return this;
 	}
 	
