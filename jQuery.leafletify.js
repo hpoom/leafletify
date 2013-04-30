@@ -15,7 +15,11 @@
 *			<meta itemprop="latitude" content="123456" />
 *			<meta itemprop="longitude" content="765432" />
 *		</div>
-*	</div>	
+*	</div>
+*
+*	Options:
+*		debug : (bool) Used to show debugging messages in the console
+*		imagePath : (string) Used to set the image directory (for map markers)
 *
 *	Uses Schema.org geocoordinates to get data for the map points http://schema.org/GeoCoordinates
 *	Each map point must contain a data attribute defining a map id the point belongs to
@@ -59,6 +63,11 @@
 				_debug = _debug;
 			} else {
 				_debug = function() {}; // do nothing if error happens
+			}
+
+			// Overwrite the image path so you can serve images from another directory other than js.
+			if( settings.imagePath ) {
+				L.Icon.Default.imagePath = settings.imagePath;
 			}
 
 			// Create a reusable OpenStreetMap tile layer
