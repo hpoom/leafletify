@@ -26,7 +26,7 @@
 *	Each map has optional data attribute of zoomlevel to define the zoom level of map
 *	
 *	TODO's: Optional / additional layers.
-*			Currently optimised for dev version (0.6-dev) due to issues with using divIcons & offsetting popovers.
+*			Need to get custom icons working properly, currently the popovers offset is incorrect.
 *			
 *
 */
@@ -210,7 +210,7 @@
 										// TODO: Find a way to make the offset dynamic based on the marker size (right now it
 										// positions itself directly over the marker image)
 										if( mapPoints[mapId][i].popover !== undefined ) {
-											marker.bindPopup( mapPoints[mapId][i].popover, { offset : [ 0, 0 ] } );
+											marker.bindPopup( mapPoints[mapId][i].popover );
 										}
 
 									} catch( e ) {
