@@ -76,186 +76,189 @@
 			var mapPoints = {}; // MapPoints are stored points per mapId
 			var mapIcons = {}; // Storing the icons found rather than keep re-using them
 			
-
-
-			// // Loop over each map
-			// this.each(function() {
-
-			// 	try {
-
-
-			// 	} catch( e ) {
-
-			// 	}
-
-
-			// });
-
-
-
-
-
-
-
-
-
-			// Loop over all the map points
+			// Loop over each map
 			this.each(function() {
 				try {
 
-					// Get some data from the DOM of the mapPoint
-					var data = $(this).data();
+					// Get the mapID & init an object ready to store all the points on it
+					var mapId = $(this).attr( 'id' );
+					mapPoints[mapId] = mapPoints[mapId] || [];	
 
-					// Our all important lat / lons
-					var latitude = $('[itemprop="latitude"]', $(this) );
-					var longitude = $('[itemprop="longitude"]', $(this) );
+					// Loop over all the map points
+					$( '.' + mapId ).each(function() {
+						try {
 
-					// Now make sure we have values we need
-					if( latitude.length && longitude.length ) {
+							// Get some data from the DOM of the mapPoint
+							var data = $(this).data();
 
-						// Add this mapPoint to a list ready to add on a map later
-						// Only add point if we have the data
-						if( data.mapid && latitude[0].content && longitude[0].content ) {
+							// Our all important lat / lons
+							var latitude = $('[itemprop="latitude"]', $(this) );
+							var longitude = $('[itemprop="longitude"]', $(this) );
 
-							// Make a point object, min requirements (lat & lon)
-							var pointObj = {
-								lat : latitude[0].content,
-								lon : longitude[0].content
-							};
+							// Now make sure we have values we need
+							if( latitude.length && longitude.length ) {
 
-							// You want a custom icon?
-							if( data.mapicondiv ) {
-								// Use the icon we have already stored or Go & find that icon & store it for re-use
-								// Because we are doing a DOM lookup to get the icon, this is more efficient.
-								if( mapIcons[data.mapicondiv] !== undefined ) {
-									pointObj.icondiv = mapIcons[data.mapicondiv];
-								} else if( $( '.' + data.mapicondiv ).length ) {
-									// We only want to get here if the icon actually exists in the dom.
-									mapIcons[data.mapicondiv] = localL.divIcon({
-										className : data.mapicondiv,
-										iconSize : null
-									});
-									pointObj.icondiv = mapIcons[data.mapicondiv];
+								// Add this mapPoint to a list ready to add on a map later
+								// Only add point if we have the data
+								if( latitude[0].content && longitude[0].content ) {
+
+									// Make a point object, min requirements (lat & lon)
+									var pointObj = {
+										lat : latitude[0].content,
+										lon : longitude[0].content
+									};
+
+									// You want a custom icon?
+									if( data.mapicondiv ) {
+										// Use the icon we have already stored or Go & find that icon & store it for re-use
+										// Because we are doing a DOM lookup to get the icon, this is more efficient.
+										if( mapIcons[data.mapicondiv] !== undefined ) {
+											pointObj.icondiv = mapIcons[data.mapicondiv];
+										} else if( $( '.' + data.mapicondiv ).length ) {
+											// We only want to get here if the icon actually exists in the dom.
+											mapIcons[data.mapicondiv] = localL.divIcon({
+												className : data.mapicondiv,
+												iconSize : null
+											});
+											pointObj.icondiv = mapIcons[data.mapicondiv];
+										}
+									}
+
+									// Great... now did this point want a popover?
+									if( data.popover ) {
+										// Use the content from inside the 'place' schema
+										// TODO: Find a way later to allow user to choose content alternative
+										// (perhaps passing in a selector?)
+										pointObj.popover = $(this).html();
+									}
+
+									// Make sure we have an array to push data onto
+									if( mapPoints[mapId] === undefined ) { mapPoints[mapId] = []; }
+									// Push map point onto this mapPoints object
+									mapPoints[mapId].push( pointObj );
 								}
 							}
-
-							// Great... now did this point want a popover?
-							if( data.popover ) {
-								// Use the content from inside the 'place' schema
-								// TODO: Find a way later to allow user to choose content alternative
-								// (perhaps passing in a selector?)
-								pointObj.popover = $(this).html();
-							}
-
-
-							// Make sure we have an array to push data onto
-							if( mapPoints[data.mapid] === undefined ) { mapPoints[data.mapid] = []; }
-							// Push map point onto this mapPoints object
-							mapPoints[data.mapid].push( pointObj );
+						} catch( e ) {
+							// Catching errors to allow the loop to continue
+							_debug( 'Listing Map Point Error: ' + e );
 						}
-					}
+					});
+
+
 				} catch( e ) {
-					// Catching errors to allow the loop to continue
-					_debug( 'Listing Map Point Error: ' + e );
+					_debug( 'Map loop error: ' + e );
 				}
+					
+				_debug( mapPoints );
+				
 			});
 
-			//== Init our maps & add points to them
-
-			console.log( 'mapPoints', mapPoints );
-
-			// Loop over each map we expect & add points to them
-			for( var mapId in mapPoints ) {
-				try {
-
-					// Grab the container we want our map to reside in
-					var $mapContainer = $( '#' + mapId );
-
-					// Make sure we have a container to put the map into
-					if( $mapContainer.length ) {
-
-						// Create an instance of a leaflet map
-						var map = localL.map( mapId );
-
-						// Store this map's state. Used to prevent trying to re-init the points again later.
-						var mapInitialized = false;
-
-						// Some event binding on the mapContainer
-						$mapContainer.on( 'showMap', function() {
-
-							// Hold a list of ALL the lats & lons to set the map centre later	
-							var latLngs = [];
-
-							// If we've already init'd this map... just refresh it on show.
-							if( mapInitialized === true ) {
-								map.invalidateSize();
-							} else {
-								// Get details from the map container
-								var mapData = $mapContainer.data();
-
-								// Need to clone the layer before we use it otherwise it causes problems
-								// with multiple maps.
-								var tiles = jQuery.extend( {}, OSMtileLayer );
-								tiles.addTo( map ); // Add this layer to our map
-
-								// Loop over the points
-								for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
-									// Catch any problems & move on to next marker here
-									try {
-										// Hold this points lat & lon
-										var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
-
-										// Add this point to our latLng list ready to use when centering the map
-										latLngs.push( latLng );
-
-										// Hold some options, some maybe optional so build this object up based on conditions later.
-										var markerOptions = {};
-
-										// If we had an icon div, use that
-										if( mapPoints[mapId][i].icondiv ) {
-											markerOptions.icon = mapPoints[mapId][i].icondiv;
-										}
-
-										// Add a marker to the map
-										var marker = localL.marker( latLng, markerOptions ).addTo( map );
-
-										// Bind a popover to our marker if we have one
-										// TODO: Find a way to make the offset dynamic based on the marker size (right now it
-										// positions itself directly over the marker image)
-										if( mapPoints[mapId][i].popover !== undefined ) {
-											marker.bindPopup( mapPoints[mapId][i].popover );
-										}
-									} catch( e ) {
-										_debug( 'Marker Error: ' + e );
-									}
-								}
 
 
-								// Set the boundries of the map view
-								map.fitBounds( latLngs );
 
-								// If we want to be Zoomed in at a specific level, do that.
-								if( mapData.zoomlevel ) {
-									map.setZoom( 12 );
-								}
+			// //== Init our maps & add points to them
 
-								// Now we've done all the hard work... let's not repeat ourselves
-								// hold the state here.
-								mapInitialized = true;
-							}
-						}).on( 'hideMap', function() {
-							// Nothing needed here yet... useful to know we can do something on hide later
-						});
+			// console.log( 'mapPoints', mapPoints );
 
-						// Trigger the first event to show the map on load (only if it's visible)
-						if( $mapContainer.is( ':visible' ) ) {
-							$mapContainer.trigger( 'showMap' );
-						}
-					}
-				} catch( e ) {
-					_debug( 'Map Point Error: ' + e );
-				}
-			}
+			// // Loop over each map we expect & add points to them
+			// for( var mapId in mapPoints ) {
+			// 	try {
+
+			// 		// Grab the container we want our map to reside in
+			// 		var $mapContainer = $( '#' + mapId );
+
+			// 		// Make sure we have a container to put the map into
+			// 		if( $mapContainer.length ) {
+
+			// 			// Create an instance of a leaflet map
+			// 			var map = localL.map( mapId );
+
+			// 			// Store this map's state. Used to prevent trying to re-init the points again later.
+			// 			var mapInitialized = false;
+
+			// 			// Some event binding on the mapContainer
+			// 			$mapContainer.on( 'showMap', function() {
+
+			// 				// Hold a list of ALL the lats & lons to set the map centre later	
+			// 				var latLngs = [];
+
+			// 				// If we've already init'd this map... just refresh it on show.
+			// 				if( mapInitialized === true ) {
+			// 					map.invalidateSize();
+			// 				} else {
+			// 					// Get details from the map container
+			// 					var mapData = $mapContainer.data();
+
+			// 					// Need to clone the layer before we use it otherwise it causes problems
+			// 					// with multiple maps.
+			// 					var tiles = jQuery.extend( {}, OSMtileLayer );
+			// 					tiles.addTo( map ); // Add this layer to our map
+
+			// 					// Loop over the points
+			// 					for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
+			// 						// Catch any problems & move on to next marker here
+			// 						try {
+			// 							// Hold this points lat & lon
+			// 							var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
+
+			// 							// Add this point to our latLng list ready to use when centering the map
+			// 							latLngs.push( latLng );
+
+			// 							// Hold some options, some maybe optional so build this object up based on conditions later.
+			// 							var markerOptions = {};
+
+			// 							// If we had an icon div, use that
+			// 							if( mapPoints[mapId][i].icondiv ) {
+			// 								markerOptions.icon = mapPoints[mapId][i].icondiv;
+			// 							}
+
+			// 							// Add a marker to the map
+			// 							var marker = localL.marker( latLng, markerOptions ).addTo( map );
+
+			// 							// Bind a popover to our marker if we have one
+			// 							// TODO: Find a way to make the offset dynamic based on the marker size (right now it
+			// 							// positions itself directly over the marker image)
+			// 							if( mapPoints[mapId][i].popover !== undefined ) {
+			// 								marker.bindPopup( mapPoints[mapId][i].popover );
+			// 							}
+			// 						} catch( e ) {
+			// 							_debug( 'Marker Error: ' + e );
+			// 						}
+			// 					}
+
+
+			// 					// Set the boundries of the map view
+			// 					map.fitBounds( latLngs );
+
+			// 					// If we want to be Zoomed in at a specific level, do that.
+			// 					if( mapData.zoomlevel ) {
+			// 						map.setZoom( mapData.zoomlevel );
+			// 					}
+
+			// 					// Now we've done all the hard work... let's not repeat ourselves
+			// 					// hold the state here.
+			// 					mapInitialized = true;
+			// 				}
+			// 			}).on( 'hideMap', function() {
+			// 				// Nothing needed here yet... useful to know we can do something on hide later
+			// 			});
+
+			// 			// Trigger the first event to show the map on load (only if it's visible)
+			// 			if( $mapContainer.is( ':visible' ) ) {
+			// 				$mapContainer.trigger( 'showMap' );
+			// 			}
+			// 		}
+			// 	} catch( e ) {
+			// 		_debug( 'Map Point Error: ' + e );
+			// 	}
+			// }
+
+
+
+
+
+
+
 		} catch( e ) {
 			_debug( 'Leafletify error: ' + e );
 		}
