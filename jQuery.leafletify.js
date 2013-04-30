@@ -19,11 +19,12 @@
 *	
 *	TODO's: Optional / additional layers.
 *			Need to get custom icons working properly, currently the popovers offset is incorrect.
+*			Expose methods on the plugin to be called externally $('...').leafletify( 'points' ); (return list of points for map)
 *			
 *
 */
 
-(function( $ ) {
+(function( $, window, document, undefined ) {
 
 	// Simple debug method
 	var _debug = function() {
@@ -37,6 +38,8 @@
 			// Check the existence of 'L' on the window object to prevent more errors.
 			if( !window.L ) {
 				throw 'Leaflet not found';
+			} else {
+				var localL = localL.noConflict();
 			}
 
 			// Our default settings
@@ -58,11 +61,11 @@
 
 			// Overwrite the image path so you can serve images from another directory other than js.
 			if( settings.imagePath ) {
-				L.Icon.Default.imagePath = settings.imagePath;
+				localL.Icon.Default.imagePath = settings.imagePath;
 			}
 
 			// Create a reusable OpenStreetMap tile layer
-			var OSMtileLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			var OSMtileLayer = localL.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			});
 
@@ -105,7 +108,7 @@
 									pointObj.icondiv = mapIcons[data.mapicondiv];
 								} else if( $( '.' + data.mapicondiv ).length ) {
 									// We only want to get here if the icon actually exists in the dom.
-									mapIcons[data.mapicondiv] = L.divIcon({
+									mapIcons[data.mapicondiv] = localL.divIcon({
 										className : data.mapicondiv,
 										iconSize : null
 									});
@@ -120,12 +123,13 @@
 								// (perhaps passing in a selector?)
 								pointObj.popover = $(this).html();
 							}
-						}
 
-						// Make sure we have an array to push data onto
-						if( mapPoints[data.mapid] === undefined ) { mapPoints[data.mapid] = []; }
-						// Push map point onto this mapPoints object
-						mapPoints[data.mapid].push( pointObj );
+
+							// Make sure we have an array to push data onto
+							if( mapPoints[data.mapid] === undefined ) { mapPoints[data.mapid] = []; }
+							// Push map point onto this mapPoints object
+							mapPoints[data.mapid].push( pointObj );
+						}
 					}
 				} catch( e ) {
 					// Catching errors to allow the loop to continue
@@ -134,6 +138,8 @@
 			});
 
 			//== Init our maps & add points to them
+
+			console.log( 'mapPoints', mapPoints );
 
 			// Loop over each map we expect & add points to them
 			for( var mapId in mapPoints ) {
@@ -146,7 +152,7 @@
 					if( $mapContainer.length ) {
 
 						// Create an instance of a leaflet map
-						var map = L.map( mapId );
+						var map = localL.map( mapId );
 
 						// Store this map's state. Used to prevent trying to re-init the points again later.
 						var mapInitialized = false;
@@ -188,7 +194,7 @@
 										}
 
 										// Add a marker to the map
-										var marker = L.marker( latLng, markerOptions ).addTo( map );
+										var marker = localL.marker( latLng, markerOptions ).addTo( map );
 
 										// Bind a popover to our marker if we have one
 										// TODO: Find a way to make the offset dynamic based on the marker size (right now it
@@ -201,11 +207,13 @@
 									}
 								}
 
-								// If we want to be Zoomed in at a specific level, do that, otherwise show all points on the map (fitBounds)
+
+								// Set the boundries of the map view
+								map.fitBounds( latLngs );
+
+								// If we want to be Zoomed in at a specific level, do that.
 								if( mapData.zoomlevel ) {
-									map.setZoom( mapData.zoomlevel );
-								} else {
-									map.fitBounds( latLngs );
+									map.setZoom( 12 );
 								}
 
 								// Now we've done all the hard work... let's not repeat ourselves
@@ -231,4 +239,4 @@
 		return this;
 	}
 	
-})( jQuery );
+})( jQuery, window, document );
