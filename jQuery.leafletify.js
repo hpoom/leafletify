@@ -39,7 +39,7 @@
 			if( !window.L ) {
 				throw 'Leaflet not found';
 			} else {
-				var localL = localL.noConflict();
+				var localL = L.noConflict();
 			}
 
 			// Our default settings
@@ -76,6 +76,29 @@
 			var mapPoints = {}; // MapPoints are stored points per mapId
 			var mapIcons = {}; // Storing the icons found rather than keep re-using them
 			
+
+
+			// // Loop over each map
+			// this.each(function() {
+
+			// 	try {
+
+
+			// 	} catch( e ) {
+
+			// 	}
+
+
+			// });
+
+
+
+
+
+
+
+
+
 			// Loop over all the map points
 			this.each(function() {
 				try {
