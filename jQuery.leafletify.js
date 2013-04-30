@@ -5,6 +5,9 @@
 *
 *	Version 1.0
 *
+*	Project Home:
+*		https://github.com/robhuzzey/leafletify
+*
 *	Usage: $('.mapPoints').leafletify();
 *
 *	<div itemscope itemtype="http://schema.org/Place" class="mapItem" data-mapid="map1" data-mapicondiv="icon1">
@@ -155,9 +158,8 @@
 						// Some event binding on the mapContainer
 						$mapContainer.on( 'showMap', function() {
 
-							// Hold a list of ALL the lats & lons to sort through & find the map centre later	
-							var lats = [];
-							var lons = [];
+							// Hold a list of ALL the lats & lons to set the map centre later	
+							var latLngs = [];
 
 							// If we've already init'd this map... just refresh it on show.
 							if( mapInitialized === true ) {
@@ -173,13 +175,16 @@
 								tiles.addTo( map ); // Add this layer to our map
 
 								// Loop over the points
-								for( var i in mapPoints[mapId] ) {
+								for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
+
 									// Catch any problems & move on to next marker here
 									try {
 
-										// Add to our list of all the lat / lons ready to work out the map centre later.
-										lats.push( mapPoints[mapId][i].lat );
-										lons.push( mapPoints[mapId][i].lon );
+										// Hold this points lat & lon
+										var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
+
+										// Add this point to our latLng list ready to use when centering the map
+										latLngs.push( latLng );
 
 										// Hold some options, some maybe optional so build this object up based on conditions later.
 										var markerOptions = {};
@@ -190,7 +195,7 @@
 										}
 
 										// Add a marker to the map
-										var marker = L.marker( [ mapPoints[mapId][i].lat, mapPoints[mapId][i].lon ], markerOptions ).addTo( map );
+										var marker = L.marker( latLng, markerOptions ).addTo( map );
 
 										// Bind a popover to our marker if we have one
 										// TODO: Find a way to make the offset dynamic based on the marker size (right now it
@@ -204,12 +209,12 @@
 									}
 								}
 
-								// Work out the centre lat & lon (approximate)
-								var cntrLat = lats[ Math.ceil( lats.length / 2 ) ];
-								var cntrLon = lons[ Math.ceil( lons.length / 2 ) ];
-
-								// Set the view to centre on this latLng
-								map.setView( [ cntrLat, cntrLon ], mapData.zoomlevel || 13 );
+								// If we want to be Zoomed in at a specific level, do that, otherwise show all points on the map (fitBounds)
+								if( mapData.zoomlevel ) {
+									map.setZoom( mapData.zoomlevel );
+								} else {
+									map.fitBounds( latLngs );
+								}
 
 								// Now we've done all the hard work... let's not repeat ourselves
 								// hold the state here.
