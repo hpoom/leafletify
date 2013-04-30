@@ -8,14 +8,6 @@
 *	Project Home:
 *		https://github.com/robhuzzey/leafletify
 *
-*	Usage: $('.mapPoints').leafletify();
-*
-*	<div itemscope itemtype="http://schema.org/Place" class="mapItem" data-mapid="map1" data-mapicondiv="icon1">
-*		<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
-*			<meta itemprop="latitude" content="123456" />
-*			<meta itemprop="longitude" content="765432" />
-*		</div>
-*	</div>
 *
 *	Options:
 *		debug : (bool) Used to show debugging messages in the console
@@ -39,7 +31,6 @@
 	};
 
 	$.fn.leafletify = function( options ) {
-
 		try {
 
 			// First up, let's make sure we have included Leaflet library
@@ -84,7 +75,6 @@
 			
 			// Loop over all the map points
 			this.each(function() {
-
 				try {
 
 					// Get some data from the DOM of the mapPoint
@@ -137,19 +127,16 @@
 						// Push map point onto this mapPoints object
 						mapPoints[data.mapid].push( pointObj );
 					}
-
 				} catch( e ) {
 					// Catching errors to allow the loop to continue
 					_debug( 'Listing Map Point Error: ' + e );
 				}
-
 			});
 
 			//== Init our maps & add points to them
 
 			// Loop over each map we expect & add points to them
 			for( var mapId in mapPoints ) {
-
 				try {
 
 					// Grab the container we want our map to reside in
@@ -174,7 +161,6 @@
 							if( mapInitialized === true ) {
 								map.invalidateSize();
 							} else {
-
 								// Get details from the map container
 								var mapData = $mapContainer.data();
 
@@ -185,10 +171,8 @@
 
 								// Loop over the points
 								for( var i = 0, len = mapPoints[mapId].length; i < len; i++ ) {
-
 									// Catch any problems & move on to next marker here
 									try {
-
 										// Hold this points lat & lon
 										var latLng = [mapPoints[mapId][i].lat,mapPoints[mapId][i].lon];
 
@@ -212,7 +196,6 @@
 										if( mapPoints[mapId][i].popover !== undefined ) {
 											marker.bindPopup( mapPoints[mapId][i].popover );
 										}
-
 									} catch( e ) {
 										_debug( 'Marker Error: ' + e );
 									}
@@ -229,7 +212,6 @@
 								// hold the state here.
 								mapInitialized = true;
 							}
-
 						}).on( 'hideMap', function() {
 							// Nothing needed here yet... useful to know we can do something on hide later
 						});
@@ -238,21 +220,15 @@
 						if( $mapContainer.is( ':visible' ) ) {
 							$mapContainer.trigger( 'showMap' );
 						}
-
 					}
-
 				} catch( e ) {
 					_debug( 'Map Point Error: ' + e );
 				}
-
 			}
-
 		} catch( e ) {
 			_debug( 'Leafletify error: ' + e );
 		}
-
 		return this;
-
 	}
-
+	
 })( jQuery );
