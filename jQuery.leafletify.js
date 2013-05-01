@@ -14,7 +14,7 @@
 *		imagePath : (string) Used to set the image directory (for map markers)
 *
 *	Uses Schema.org geocoordinates to get data for the map points http://schema.org/GeoCoordinates
-*	Each map point must contain a data attribute defining a map id the point belongs to
+*	Each map point must contain a class (can have multiple) named the same as the map id the point belongs to 
 *	Each map has optional data attribute of zoomlevel to define the zoom level of map
 *	
 *	TODO's: Optional / additional layers.
