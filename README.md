@@ -21,13 +21,13 @@ Libraries for leaflet.js to work
 jQuery
 --------
 ```javascript
-$('.mapItem').leafletify();
+$('#myMap, #myOtherMap').leafletify();
 ```
 
 Points (each item you want to appear on map)
 ------------------------------------------
 ```html
-<div itemscope itemtype="http://schema.org/Place" class="mapItem" data-mapid="myMap" data-popover="true">
+<div itemscope itemtype="http://schema.org/Place" class="myMap" data-popover="true">
 	<h1>Holiday Extras building (the 'wave')</h1>
 	<p>The company I work for.</p>
 	<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
@@ -36,7 +36,8 @@ Points (each item you want to appear on map)
 	</div>
 </div>
 
-<div itemscope itemtype="http://schema.org/Place" class="mapItem" data-mapid="myMap" data-popover="true">
+<!-- This point will appear on both maps 'myMap' and 'myOtherMap' -->
+<div itemscope itemtype="http://schema.org/Place" class="myMap myOtherMap" data-popover="true">
 	<h1>Royal Oak</h1>
 	<p>The building I work in.</p>
 	<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
@@ -46,8 +47,11 @@ Points (each item you want to appear on map)
 </div>
 ```
 
-HTML (map container)
+HTML (map containers)
 --------------------
 ```html
 <div id="myMap"></div>
+```
+```html
+<div id="myOtherMap"></div>
 ```
