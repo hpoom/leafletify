@@ -55,3 +55,7 @@ HTML (map containers)
 ```html
 <div id="myOtherMap"></div>
 ```
+
+Events
+------
+Each map listens for 2 events `showMap` and `hideMap` - Currently only `showMap` is supported & ised used to "update the map", effectively a redraw (fixes the problem of maps rendering in hidden elements).
