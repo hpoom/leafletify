@@ -14,6 +14,7 @@ Libraries for leaflet.js to work
  <!--[if lte IE 8]>
      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
  <![endif]-->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
 <script type="text/javascript" src="/path/to/jQuery.leafletify.js"></script>
 ```
@@ -21,7 +22,7 @@ Libraries for leaflet.js to work
 jQuery
 --------
 ```javascript
-$('#myMap, #myOtherMap').leafletify();
+$('.mapContainer').leafletify();
 ```
 
 Points (each item you want to appear on map)
@@ -50,10 +51,10 @@ Points (each item you want to appear on map)
 HTML (map containers)
 --------------------
 ```html
-<div id="myMap"></div>
+<div class="mapContainer" data-mapname="myMap"></div>
 ```
 ```html
-<div id="myOtherMap"></div>
+<div class="mapContainer" data-mapname="myOtherMap"></div>
 ```
 
 Events
