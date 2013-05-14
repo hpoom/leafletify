@@ -31,8 +31,13 @@
 		window.console && console.log && console.log( arguments );
 	};
 
+	// Quick fix... not liking this too much
+	var getPoints = function() {
+		return this.mapPoints;
+	}
+
 	$.fn.leafletify = function( options ) {
-		
+
 		try {
 
 			// First up, let's make sure we have included Leaflet library
@@ -70,15 +75,13 @@
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			});
 
-			//== Parse the DOM to get the map Points
-
-			// First up, find all the positions 
-			// & store to use later
-			var mapPoints = []; // MapPoints for this map
 			var mapIcons = {}; // Storing the icons found rather than keep re-using them
 			
 			// Loop over each map
 			this.each(function() {
+
+				var mapPoints = []; // MapPoints for this map
+
 				try {
 
 					// Get the mapName & init an object ready to store all the points on it
@@ -227,6 +230,14 @@
 					if( $(this).is( ':visible' ) ) {
 						$(this).trigger( 'showMap' );
 					}
+
+
+					// Quick fix to get map points 
+					this.map = map || {};
+					this.mapPoints = mapPoints || [];
+					this.getPoints = getPoints;
+
+
 
 				} catch( e ) {
 					_debug( 'Map loop error: ' + e );
